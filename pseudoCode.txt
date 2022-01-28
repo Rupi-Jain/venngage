@@ -1,0 +1,109 @@
+  ******** To find nearest node. *******
+  
+  // handle is a node in motion and handles is an array of nodes
+  let handle1 = { x: 200, y: 350, radius: 30 };
+  let handle2 = { x: 450, y: 250, radius: 30 };
+  let handle3 = { x: 200, y: 200, width: 80, height:60 };
+  let handle4 = { x: 500, y: 300, width: 85, height:65 };
+  let handles = { handle1,handle2,handle3,handle4 }
+  let width =  window.innerWidth;
+  let height =  window.innerHeight;
+
+  function findNearestNeighbour(handle){
+    let origin = findCenterOfNode(handle);
+    let target;
+    for (let handle in handles) {    
+      if (handle !== currentNode) {
+        target = findCenterOfNode(handles[handle]);
+        let minDistance = findMinimumDistance(origin, target);
+        if (minDistance < 100)
+          addNodeToPriorityQueue({minDistance, handle})
+      }  
+    }
+    return removeNodeFromPriorityQueue();
+  }
+
+  function addNodeToPriorityQueue(node) {
+    let i = shiftItemToInsert(node);
+    priorityQueue[i] = node;
+    count++;
+  }
+
+  function shiftItemToInsert(node) {
+    let i = 0;
+    for (i = count - 1; i >= 0; i--) {
+      if (priorityQueue[i].value < node.value) 
+        priorityQueue[ i + 1] = priorityQueue[i];
+      else
+        break;
+    }
+    return i + 1;
+  }
+
+  function removeNodeFromPriorityQueue() {
+    let nearestNode =  priorityQueue[--count];
+    priorityQueue = [];
+    count = 0;
+    return nearestNode;
+  }
+
+  function findCenterOfNode (handle) {
+    if (handle.hasOwnProperty('radius'))
+      return {x: handle.x, y: handle.y};
+    else
+      return {x: handle.x + (handle.width / 2), y: handle.y + (handle.height / 2)};
+  }
+
+  function findMinimumDistance(origin, target){
+    var dx = target.x - origin.x;
+    dy = target.y - origin.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+
+  ******* To find the left, right, center of CIRCLE and SQUARE/RECTANGLE **********
+
+  function findLeftRightCenterOfCircle(handle) {
+    let left = [(handle.x - handle.radius), handle.y];
+    let right = [(handle.x + handle.radius), handle.y];
+    let center = [handle.x, handle.y];
+    let top = [handle.x, handle.y - handle.radius];
+    let bottom = [handle.x, handle.y + handle.radius];
+    let isRadius = true; 
+    return {left, right, center, top, bottom, isRadius};
+  }
+
+  function findLeftRightCenterOfRect(handle) {
+    let leftTop = [handle.x , handle.y];
+    let rightTop = [(handle.x + handle.width) , handle.y  ];
+    let center = [handle.x + (handle.width / 2), handle.y + (handle.height / 2)];
+    let leftBottom = [handle.x, (handle.y + handle.height) ];
+    let rightBottom = [rightTop[0] , leftBottom[1]];
+    let leftCenter = [leftTop[0] , (leftTop[1] + handle.height / 2)];
+    let rightCenter = [rightTop[0] , (rightTop[1] + handle.height / 2)];
+    let topCenter = [(leftTop[0] + handle.width / 2), leftTop[1]];
+    let  bottomCenter = [(leftBottom[0] + handle.width / 2), leftBottom[1]];    
+    let  isRadius = false;
+    return {leftTop, rightTop, center, leftBottom, rightBottom, 
+            leftCenter, rightCenter, topCenter, bottomCenter, isRadius};
+  }
+
+****** Alignment with page ********
+// pageCoords[] is an array holding informatio of left, right and center of a page
+
+let pageCoords = {left: {x: 30, y: 0}, right: {x: width - 30, y: 0}, center: {x: width/2, y: height/2}};
+
+  function alignToPage(handle,pageCoords, height, width) {
+    let coords = findCenterOfNode(handle);
+
+    for (let pageSide in pageCoords) {
+      let minDistance;
+      if (pageSide === 'left' || pageSide === 'right')
+        minDistance = Math.abs(pageCoords[pageSide].x - coords.x);
+      else
+        minDistance = findMinimumDistance(pageCoords[pageSide], coords);
+      if (minDistance < 100)
+        return utils.drawAlignmentLinesOnPage(pageSide, pageCoords, height, width)
+    }
+  }
+
